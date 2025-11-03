@@ -1,0 +1,14 @@
+{
+    "firehose": {
+        "output_file": "30-10-25.jsonl",
+        "verbose": true
+    },
+    "scraping": {
+        "time_limit": 10,
+        "action_limit": 100000
+    },
+    "actions": {
+        "filename" : "actions.json",
+        "save": true
+    }
+}

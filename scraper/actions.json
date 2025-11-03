@@ -1,0 +1,1 @@
+["app.bsky.labeler.service", "app.bsky.feed.post", "app.bsky.actor.status", "app.bsky.feed.generator", "app.bsky.graph.block", "app.bsky.graph.listitem", "app.bsky.feed.like", "app.bsky.feed.postgate", "app.bsky.graph.follow", "place.stream.broadcast.origin", "app.bsky.feed.threadgate", "app.bsky.feed.repost", "chat.bsky.actor.declaration", "app.bsky.actor.profile"]

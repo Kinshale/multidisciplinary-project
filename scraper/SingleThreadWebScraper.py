@@ -216,10 +216,22 @@ class ActionScraper:
     def _process_CAR_data(self, commit, op):
         ACTION_HANDLERS = {
             'app.bsky.feed.post': '_extract_post_data',
-            #'app.bsky.feed.like': '_extract_like_data',
-            # 'app.bsky.feed.repost': '_process_repost',
-            # 'app.bsky.graph.follow': '_process_follow',
-            # 'app.bsky.graph.block': '_process_block',
+            'app.bsky.feed.like': '_extract_like_data',
+            'app.bsky.feed.repost': '_extract_repost_data',
+            'app.bsky.graph.follow': '_extract_follow_data',
+            'app.bsky.graph.block': '_extract_block_data',
+            "app.bsky.feed.threadgate" : "_extract_thread_data",
+            "app.bsky.labeler.service" : "_extract_labeler_data",
+            "app.bsky.feed.postgate" : "_extract_postgate_data",
+            "place.stream.broadcast.origin" : "_extract_origin_data",
+            "app.bsky.actor.status" : "_extract_actor_data",
+            "chat.bsky.actor.declaration" : "_extract_declaration_data",
+            "app.bsky.actor.profile" : "_extract_profile_data",
+            "app.bsky.feed.generator" : "_extract_generator_data",
+            "app.bsky.graph.listitem" : "_extract_listitem_data",
+            'app.bsky.graph.starterpack' : '_extract_starterpack_data',
+            'app.bsky.graph.listblock' : '_extract_listblock_data',
+            'app.bsky.graph.list' : '_extract_list_data',
             # Add more actions as needed
         }
         """Process a single post operation"""
@@ -236,12 +248,16 @@ class ActionScraper:
 
                 if isinstance(record, dict):
                     type_action = record.get('$type')
-                    handler_name = ACTION_HANDLERS.get(type_action)
 
-                    if handler_name:
+                    if type_action:
+                        print(f"Processing type_action: {type_action}")
 
-                        handler_method = getattr(self, handler_name)
-                        return handler_method(record, commit.repo, op.path, type_action)
+                        handler_name = ACTION_HANDLERS.get(type_action)
+
+                        if handler_name:
+
+                            handler_method = getattr(self, handler_name)
+                            return handler_method(record, commit.repo, op.path, type_action)
 
             return {}
         
@@ -271,6 +287,77 @@ class ActionScraper:
         }
 
     def _extract_like_data(self,record, repo, path, typeof_action):
+        print("LIKE")
+        print(record)
+        return record
+
+    def _extract_repost_data(self,record, repo, path, typeof_action):
+        print("REPOST")
+        print(record)
+        return record
+
+    def _extract_block_data(self,record, repo, path, typeof_action):
+        print("BLOCK")
+        print(record)
+        return record
+
+    def _extract_follow_data(self,record, repo, path, typeof_action):
+        print("FOLLOW")
+        print(record)
+        return record
+
+    def _extract_origin_data(self,record, repo, path, typeof_action):
+        print("ORIGIN")
+        print(record)
+        return record
+    def _extract_actor_data(self,record, repo, path, typeof_action):
+        print("ACTOR")
+        print(record)
+        return record
+    def _extract_declaration_data(self,record, repo, path, typeof_action):
+        print("DECLARATION")
+        print(record)
+        return record
+    def _extract_profile_data(self,record, repo, path, typeof_action):
+        print("PROFILE")
+        print(record)
+        return record
+    def _extract_generator_data(self,record, repo, path, typeof_action):
+        print("GENERATOR")
+        print(record)
+        return record
+    def _extract_listitem_data(self,record, repo, path, typeof_action):
+        print("LISTITEM")
+        print(record)
+        return record
+
+    def _extract_postgate_data(self,record, repo, path, typeof_action):
+        print("POSTGATE")
+        print(record)
+        return record
+
+    def _extract_thread_data(self,record, repo, path, typeof_action):
+        print("THREAD")
+        print(record)
+        return record
+
+    def _extract_labeler_data(self,record, repo, path, typeof_action):
+        print("LABELER")
+        print(record)
+        return record
+
+    def _extract_starterpack_data(self,record, repo, path, typeof_action):
+        print("STARTER")
+        print(record)
+        return record
+
+    def _extract_listblock_data(self,record, repo, path, typeof_action):
+        print("LISTBLOCK")
+        print(record)
+        return record
+
+    def _extract_list_data(self,record, repo, path, typeof_action):
+        print("LIST")
         print(record)
         return record
 

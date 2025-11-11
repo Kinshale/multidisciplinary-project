@@ -162,10 +162,8 @@ def classify_type_action(path, action_classifier):
     action = match.group(2)  # "like"
     record_id = match.group(3)  # "3lcaqus3rxq2c"
 
-    # print(f"Namespace: {namespace}" + f" Action: {action}" + f" RecordID: {record_id}")
-
     action_classifier.add_action(namespace + '.' +action)
-    return namespace + '.' +action
+    return record_id
 
 class ActionScraper:
     def __init__(self,action_classifier, verbose=False):
@@ -186,14 +184,14 @@ class ActionScraper:
 
             for op in commit.ops:
 
-                #type_action = classify_type_action(op.path, self.action_classifier)
+                rKey = classify_type_action(op.path, self.action_classifier)
 
-                data_to_save = self._extract_metadata(commit, op, resolver)
+                data_to_save = self._extract_metadata(commit, op, resolver, rKey)
 
                 if self.verbose:
                     print(f"Processing op: {op}")
 
-                new_data = self._process_CAR_data(commit, op)
+                new_data = self._process_CAR_data(commit, op, resolver)
 
                 data_to_save.update(new_data)
                 self._save_data(data_to_save, output_file)
@@ -202,18 +200,19 @@ class ActionScraper:
         except Exception as e:
             print(f"Error processing action: {e}")
 
-    def _extract_metadata (self, commit, op, resolver):
+    def _extract_metadata (self, commit, op, resolver, rKey):
         author_handle = self._resolve_author_handle(commit.repo, resolver)
         timestamp = commit.time
         action = op.action
 
         return {
             'author': author_handle,
-            'timestamp': timestamp,
+            'rkey': rKey,
+            'created_at': timestamp,
             'action': action,
         }
 
-    def _process_CAR_data(self, commit, op):
+    def _process_CAR_data(self, commit, op, resolver):
         ACTION_HANDLERS = {
             'app.bsky.feed.post': '_extract_post_data',
             'app.bsky.feed.like': '_extract_like_data',
@@ -257,7 +256,7 @@ class ActionScraper:
                         if handler_name:
 
                             handler_method = getattr(self, handler_name)
-                            return handler_method(record, commit.repo, op.path, type_action)
+                            return handler_method(record, commit.repo, op.path, type_action, resolver)
 
             return {}
         
@@ -273,90 +272,117 @@ class ActionScraper:
             print(f"Could not resolve handle for {repo}: {e}")
             return repo  # Fallback to DID
 
-    def _extract_post_data(self,record, repo, path, typeof_action):
+    def _extract_post_data(self,record, repo, path, typeof_action, resolver):
         """Extract post data from a record"""
         has_images = self._check_for_images(record)
         reply_to = self._get_reply_to(record)
         return {
+            'typeOfAction': typeof_action,
             'text': record.get('text', ''),
             'uri': f'at://{repo}/{path}',
             'has_images': has_images,
             'reply_to': reply_to,
-            'typeOfAction': typeof_action,
             'lang': record.get('langs', ''),
         }
 
-    def _extract_like_data(self,record, repo, path, typeof_action):
-        print("LIKE")
-        print(record)
-        return record
+    #toDO
+    def _extract_like_data(self, record, repo, path, typeof_action, resolver):
+        return {
+            'typeOfAction': typeof_action
+        }
 
-    def _extract_repost_data(self,record, repo, path, typeof_action):
+    # toDO
+    def _extract_repost_data(self, record, repo, path, typeof_action, resolver):
         print("REPOST")
         print(record)
         return record
 
-    def _extract_block_data(self,record, repo, path, typeof_action):
-        print("BLOCK")
-        print(record)
-        return record
+    def _extract_block_data(self,record, repo, path, typeof_action, resolver):
 
-    def _extract_follow_data(self,record, repo, path, typeof_action):
-        print("FOLLOW")
-        print(record)
-        return record
+        subject = self._resolve_author_handle(record.get('subject'), resolver)
 
-    def _extract_origin_data(self,record, repo, path, typeof_action):
+        return {
+            'typeOfAction': typeof_action,
+            'subject_id': subject
+        }
+
+    def _extract_follow_data(self,record, repo, path, typeof_action, resolver):
+
+        subject = self._resolve_author_handle(record.get('subject'), resolver)
+
+        return {
+            'typeOfAction': typeof_action,
+            'subject_id': subject
+        }
+
+    # toDO
+    def _extract_origin_data(self,record, repo, path, typeof_action, resolver):
         print("ORIGIN")
         print(record)
         return record
-    def _extract_actor_data(self,record, repo, path, typeof_action):
+
+    # toDO
+    def _extract_actor_data(self,record, repo, path, typeof_action, resolver):
         print("ACTOR")
         print(record)
         return record
-    def _extract_declaration_data(self,record, repo, path, typeof_action):
+
+    # toDO
+    def _extract_declaration_data(self,record, repo, path, typeof_action, resolver):
         print("DECLARATION")
         print(record)
         return record
-    def _extract_profile_data(self,record, repo, path, typeof_action):
+
+    # toDO
+    def _extract_profile_data(self,record, repo, path, typeof_action, resolver):
         print("PROFILE")
         print(record)
         return record
-    def _extract_generator_data(self,record, repo, path, typeof_action):
+
+    # toDO
+    def _extract_generator_data(self,record, repo, path, typeof_action, resolver):
         print("GENERATOR")
         print(record)
         return record
-    def _extract_listitem_data(self,record, repo, path, typeof_action):
+
+    # toDO
+    def _extract_listitem_data(self,record, repo, path, typeof_action, resolver):
         print("LISTITEM")
         print(record)
         return record
 
-    def _extract_postgate_data(self,record, repo, path, typeof_action):
+    # toDO
+    def _extract_postgate_data(self,record, repo, path, typeof_action, resolver):
         print("POSTGATE")
         print(record)
         return record
 
-    def _extract_thread_data(self,record, repo, path, typeof_action):
+    # toDO
+    def _extract_thread_data(self,record, repo, path, typeof_action, resolver):
         print("THREAD")
         print(record)
         return record
 
-    def _extract_labeler_data(self,record, repo, path, typeof_action):
+    # toDO
+    def _extract_labeler_data(self,record, repo, path, typeof_action, resolver):
         print("LABELER")
         print(record)
         return record
 
-    def _extract_starterpack_data(self,record, repo, path, typeof_action):
+    # toDO
+    def _extract_starterpack_data(self,record, repo, path, typeof_action, resolver):
         print("STARTER")
         print(record)
         return record
 
-    def _extract_listblock_data(self,record, repo, path, typeof_action):
+    # toDO
+    def _extract_listblock_data(self,record, repo, path, typeof_action, resolver):
         print("LISTBLOCK")
         print(record)
         return record
 
-    def _extract_list_data(self,record, repo, path, typeof_action):
+    # toDO
+    def _extract_list_data(self,record, repo, path, typeof_action, resolver):
         print("LIST")
         print(record)
         return record

@@ -1,11 +1,11 @@
 {
     "firehose": {
-        "output_file": "30-10-25.jsonl",
+        "output_file": "09-11-25.jsonl",
         "verbose": false
     },
     "scraping": {
-        "time_limit": 1000,
-        "action_limit": 100000
+        "time_limit": 10000,
+        "action_limit": 100
     },
     "actions": {
         "filename" : "actions.json",

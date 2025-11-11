@@ -1,0 +1,22 @@
+name: bluesky-ai
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pandas
+  - numpy
+  - jupyter
+  - matplotlib
+  - seaborn
+  - scikit-learn
+  - pip:
+    - atproto
+    - datasets
+    - huggingface-hub
+    - pyarrow
+    - requests
+    - sqlalchemy
+    - psycopg2
+    - tqdm

@@ -1,0 +1,193 @@
+{
+  "database_name": "bluesky_data",
+  "description": "Centralized database for storing Bluesky social media data",
+  "recommended_approach": "Single database with multiple related tables",
+  "tables": {
+    
+    "blocks": {
+      "description": "User blocking relationships",
+      "columns": [
+        {"name": "did_id", "type": "TEXT", "description": "DID of the user who created the block"},
+        {"name": "rkey", "type": "TEXT", "description": "Record key for the block"},
+        {"name": "created_at", "type": "TIMESTAMP", "description": "When the block was created"},
+        {"name": "subject_id", "type": "TEXT", "description": "DID of the user being blocked"}
+      ],
+      "primary_key": ["did_id", "rkey"]
+    },
+
+    "feed_generators": {
+      "description": "Custom feed generators created by users",
+      "columns": [
+        {"name": "did_id", "type": "TEXT", "description": "DID of the feed generator creator"},
+        {"name": "rkey", "type": "TEXT", "description": "Record key for the feed generator"},
+        {"name": "created_at", "type": "TIMESTAMP", "description": "When the feed generator was created"},
+        {"name": "feed_generator_did", "type": "TEXT", "description": "DID of the feed generator service"},
+        {"name": "display_name", "type": "TEXT", "description": "Display name of the feed"},
+        {"name": "description", "type": "TEXT", "description": "Description of what the feed contains"},
+        {"name": "labels", "type": "JSON", "description": "Content labels and moderation flags"},
+        {"name": "content_mode", "type": "TEXT", "description": "Content filtering mode"},
+        {"name": "accepts_interaction", "type": "BOOLEAN", "description": "Whether feed accepts user interactions"},
+        {"name": "avatar_cid", "type": "TEXT", "description": "CID for avatar image (denoted by '/')"},
+        {"name": "avatar_size", "type": "INTEGER", "description": "Size of avatar image in bytes"},
+        {"name": "avatar_mime_type", "type": "TEXT", "description": "MIME type of avatar image"},
+        {"name": "additional_fields", "type": "JSON", "description": "Extended or custom fields"}
+      ],
+      "primary_key": ["did_id", "rkey"]
+    },
+
+    "follows": {
+      "description": "User following relationships",
+      "columns": [
+        {"name": "did_id", "type": "TEXT", "description": "DID of the user who is following"},
+        {"name": "rkey", "type": "TEXT", "description": "Record key for the follow"},
+        {"name": "created_at", "type": "TIMESTAMP", "description": "When the follow was created"},
+        {"name": "subject_id", "type": "TEXT", "description": "DID of the user being followed"}
+      ],
+      "primary_key": ["did_id", "rkey"]
+    },
+
+    "likes": {
+      "description": "Post like engagements",
+      "columns": [
+        {"name": "did_id", "type": "TEXT", "description": "DID of the user who liked"},
+        {"name": "rkey", "type": "TEXT", "description": "Record key for the like"},
+        {"name": "created_at", "type": "TIMESTAMP", "description": "When the like was created"},
+        {"name": "subject_did_id", "type": "TEXT", "description": "DID of the liked content creator"},
+        {"name": "collection", "type": "TEXT", "description": "Collection type of liked content"},
+        {"name": "subject_rkey", "type": "TEXT", "description": "Record key of the liked content"}
+      ],
+      "primary_key": ["did_id", "rkey"]
+    },
+
+    "list_blocks": {
+      "description": "Block relationships involving lists",
+      "columns": [
+        {"name": "did_id", "type": "TEXT", "description": "DID of the user creating the block"},
+        {"name": "rkey", "type": "TEXT", "description": "Record key for the list block"},
+        {"name": "created_at", "type": "TIMESTAMP", "description": "When the list block was created"},
+        {"name": "subject_did_id", "type": "TEXT", "description": "DID being blocked via list"},
+        {"name": "collection", "type": "TEXT", "description": "Collection type of the subject"},
+        {"name": "subject_rkey", "type": "TEXT", "description": "Record key of the subject"}
+      ],
+      "primary_key": ["did_id", "rkey"]
+    },
+
+    "list_items": {
+      "description": "Items within user-created lists",
+      "columns": [
+        {"name": "did_id", "type": "TEXT", "description": "DID of the list owner"},
+        {"name": "rkey", "type": "TEXT", "description": "Record key for the list item"},
+        {"name": "created_at", "type": "TIMESTAMP", "description": "When the item was added to list"},
+        {"name": "list_did_id", "type": "TEXT", "description": "DID reference to parent list"},
+        {"name": "list_collection", "type": "TEXT", "description": "Collection type of parent list"},
+        {"name": "list_rkey", "type": "TEXT", "description": "Record key of parent list"},
+        {"name": "subject_id", "type": "TEXT", "description": "DID of the user added to the list"}
+      ],
+      "primary_key": ["did_id", "rkey"]
+    },
+
+    "lists": {
+      "description": "User-created lists for organizing content or users",
+      "columns": [
+        {"name": "did_id", "type": "TEXT", "description": "DID of the list creator"},
+        {"name": "rkey", "type": "TEXT", "description": "Record key for the list"},
+        {"name": "created_at", "type": "TIMESTAMP", "description": "When the list was created"},
+        {"name": "name", "type": "TEXT", "description": "Display name of the list"},
+        {"name": "description", "type": "TEXT", "description": "Description of the list purpose"},
+        {"name": "avatar_cid", "type": "TEXT", "description": "CID for list avatar image"},
+        {"name": "avatar_size", "type": "INTEGER", "description": "Size of avatar image in bytes"},
+        {"name": "avatar_mime_type", "type": "TEXT", "description": "MIME type of avatar image"},
+        {"name": "purpose", "type": "TEXT", "description": "Intended use case for the list"},
+        {"name": "labels", "type": "JSON", "description": "Content labels and moderation flags"}
+      ],
+      "primary_key": ["did_id", "rkey"]
+    },
+
+    "posts": {
+      "description": "User posts and content",
+      "columns": [
+        {"name": "did_id", "type": "TEXT", "description": "DID of the post author"},
+        {"name": "rkey", "type": "TEXT", "description": "Record key for the post"},
+        {"name": "created_at", "type": "TIMESTAMP", "description": "When the post was created"},
+        {"name": "languages", "type": "JSON", "description": "Languages used in the post content"},
+        {"name": "labels", "type": "JSON", "description": "Content labels and moderation flags"},
+        {"name": "tags", "type": "JSON", "description": "Hashtags and content tags"},
+        {"name": "embed_type", "type": "TEXT", "description": "Type of embedded content"},
+        {"name": "embed_author_did", "type": "TEXT", "description": "DID of embedded content author"},
+        {"name": "embed_author_collection", "type": "TEXT", "description": "Collection type of embedded author"},
+        {"name": "embed_author_rkey", "type": "TEXT", "description": "Record key of embedded author"},
+        {"name": "embed_external_uri", "type": "TEXT", "description": "URI for external embedded content"},
+        {"name": "embed_images", "type": "JSON", "description": "Embedded image data"},
+        {"name": "embed_media", "type": "JSON", "description": "Embedded media data"},
+        {"name": "embed_video", "type": "JSON", "description": "Embedded video data"},
+        {"name": "reply_root_did", "type": "TEXT", "description": "DID of reply root author"},
+        {"name": "reply_root_collection", "type": "TEXT", "description": "Collection type of reply root"},
+        {"name": "reply_root_rkey", "type": "TEXT", "description": "Record key of reply root"},
+        {"name": "reply_parent_did", "type": "TEXT", "description": "DID of direct reply parent author"},
+        {"name": "reply_parent_collection", "type": "TEXT", "description": "Collection type of reply parent"},
+        {"name": "reply_parent_rkey", "type": "TEXT", "description": "Record key of reply parent"}
+      ],
+      "primary_key": ["did_id", "rkey"]
+    },
+
+    "profiles": {
+      "description": "User profile information",
+      "columns": [
+        {"name": "did_id", "type": "TEXT", "description": "DID of the profile owner"},
+        {"name": "rkey", "type": "TEXT", "description": "Record key for the profile"},
+        {"name": "created_at", "type": "TIMESTAMP", "description": "When the profile was created/updated"},
+        {"name": "description", "type": "TEXT", "description": "Profile bio/description"},
+        {"name": "labels", "type": "JSON", "description": "Profile labels and moderation flags"},
+        {"name": "avatar_cid", "type": "TEXT", "description": "CID for profile avatar image"},
+        {"name": "avatar_size", "type": "INTEGER", "description": "Size of avatar image in bytes"},
+        {"name": "avatar_mime_type", "type": "TEXT", "description": "MIME type of avatar image"},
+        {"name": "banner_cid", "type": "TEXT", "description": "CID for profile banner image"},
+        {"name": "banner_size", "type": "INTEGER", "description": "Size of banner image in bytes"},
+        {"name": "banner_mime_type", "type": "TEXT", "description": "MIME type of banner image"},
+        {"name": "joined_via_starter_pack", "type": "BOOLEAN", "description": "Whether user joined via starter pack"},
+        {"name": "additional_fields", "type": "JSON", "description": "Extended profile fields"}
+      ],
+      "primary_key": ["did_id", "rkey"]
+    },
+
+    "reposts": {
+      "description": "Post repost engagements",
+      "columns": [
+        {"name": "did_id", "type": "TEXT", "description": "DID of the user who reposted"},
+        {"name": "rkey", "type": "TEXT", "description": "Record key for the repost"},
+        {"name": "created_at", "type": "TIMESTAMP", "description": "When the repost was created"},
+        {"name": "subject_did_id", "type": "TEXT", "description": "DID of the original content creator"},
+        {"name": "collection", "type": "TEXT", "description": "Collection type of reposted content"},
+        {"name": "subject_rkey", "type": "TEXT", "description": "Record key of the reposted content"}
+      ],
+      "primary_key": ["did_id", "rkey"]
+    },
+
+    "starter_packs": {
+      "description": "Starter packs for user discovery",
+      "columns": [
+        {"name": "did_id", "type": "TEXT", "description": "DID of the starter pack creator"},
+        {"name": "rkey", "type": "TEXT", "description": "Record key for the starter pack"},
+        {"name": "name", "type": "TEXT", "description": "Display name of the starter pack"},
+        {"name": "description", "type": "TEXT", "description": "Description of the starter pack"},
+        {"name": "list_did_id", "type": "TEXT", "description": "DID reference to included list"},
+        {"name": "list_collection", "type": "TEXT", "description": "Collection type of included list"},
+        {"name": "list_rkey", "type": "TEXT", "description": "Record key of included list"},
+        {"name": "feed_did_id", "type": "TEXT", "description": "DID reference to included feed"},
+        {"name": "feed_collection", "type": "TEXT", "description": "Collection type of included feed"},
+        {"name": "feed_rkey", "type": "TEXT", "description": "Record key of included feed"}
+      ],
+      "primary_key": ["did_id", "rkey"]
+    }
+  },
+
+  "relationships": {
+    "notes": [
+      "All tables use composite primary keys (did_id, rkey) for unique identification",
+      "did_id typically references user DIDs (Decentralized Identifiers)",
+      "rkey is the record key within the user's collection",
+      "Timestamp fields use ISO 8601 format",
+      "JSON fields store structured data like arrays or objects"
+    ]
+  }
+}

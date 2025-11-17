@@ -5,6 +5,7 @@ dependencies:
   - python=3.11 # NOTE: 3.10 causes bugs
   - pandas
   - numpy
+  - duckdb # For columnar dbs 
   - matplotlib
   - seaborn
   - scikit-learn

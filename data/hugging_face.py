@@ -57,6 +57,3 @@ from datasets import load_dataset
 
 dataset = load_dataset("Kinshale/multidisciplinary-project")
 print(dataset['train'][:])  # Shows your 2 rows 
-
-
-

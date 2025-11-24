@@ -1,7 +1,6 @@
 {
   "database_name": "bluesky_data",
-  "description": "Centralized database for storing Bluesky social media data",
-  "recommended_approach": "Single database with multiple related tables",
+  "description": "How shall we store the data?",
   "tables": {
     
     "blocks": {

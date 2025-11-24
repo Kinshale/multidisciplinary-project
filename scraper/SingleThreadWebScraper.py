@@ -207,7 +207,7 @@ class ActionScraper:
 
         return {
             'author': author_handle,
-            'rkey': rKey,
+            #'rkey': rKey,
             'created_at': timestamp,
             'action': action,
         }
@@ -220,15 +220,10 @@ class ActionScraper:
             'app.bsky.graph.follow': '_extract_follow_data',
             'app.bsky.graph.block': '_extract_block_data',
             "app.bsky.feed.threadgate" : "_extract_thread_data",
-            "app.bsky.labeler.service" : "_extract_labeler_data",
             "app.bsky.feed.postgate" : "_extract_postgate_data",
-            "place.stream.broadcast.origin" : "_extract_origin_data",
             "app.bsky.actor.status" : "_extract_actor_data",
-            "chat.bsky.actor.declaration" : "_extract_declaration_data",
             "app.bsky.actor.profile" : "_extract_profile_data",
-            "app.bsky.feed.generator" : "_extract_generator_data",
             "app.bsky.graph.listitem" : "_extract_listitem_data",
-            'app.bsky.graph.starterpack' : '_extract_starterpack_data',
             'app.bsky.graph.listblock' : '_extract_listblock_data',
             'app.bsky.graph.list' : '_extract_list_data',
             # Add more actions as needed
@@ -249,7 +244,9 @@ class ActionScraper:
                     type_action = record.get('$type')
 
                     if type_action:
-                        print(f"Processing type_action: {type_action}")
+
+                        if self.verbose:
+                            print(f"Processing type_action: {type_action}")
 
                         handler_name = ACTION_HANDLERS.get(type_action)
 
@@ -269,123 +266,265 @@ class ActionScraper:
             resolved_info = resolver.did.resolve(repo)
             return resolved_info.also_known_as[0].split('at://')[1] if resolved_info.also_known_as else repo
         except Exception as e:
-            print(f"Could not resolve handle for {repo}: {e}")
+            if self.verbose:
+                print(f"Could not resolve handle for {repo}: {e}")
             return repo  # Fallback to DID
 
     def _extract_post_data(self,record, repo, path, typeof_action, resolver):
-        """Extract post data from a record"""
-        has_images = self._check_for_images(record)
-        reply_to = self._get_reply_to(record)
+        try:
+            """Extract post data from a record"""
+            has_images = self._check_for_images(record)
+            reply_to = self._get_reply_to(record)
+
+            reply = record.get('reply','')
+            if(reply != ''):
+                reply_root = reply.get('root','')
+                root_url = reply_root.get('uri', '')
+                did_root, event = self.extract_EventAndDidFromURI(root_url)
+                did_root = self._resolve_author_handle(did_root, resolver)
+                reply_parent = reply.get('parent', '')
+                parent_url = reply_parent.get('uri', '')
+                did_parent, event = self.extract_EventAndDidFromURI(parent_url)
+                did_parent = self._resolve_author_handle(did_parent, resolver)
+            else:
+                reply_root = ''
+                root_url = ''
+                did_root = ''
+                did_parent = ''
+
+        except Exception as e:
+            print(f"Error processing post: {e}")
+            has_images=''
+            reply_to=''
+            did_root=''
+            did_parent=''
+
         return {
             'typeOfAction': typeof_action,
             'text': record.get('text', ''),
-            'uri': f'at://{repo}/{path}',
             'has_images': has_images,
             'reply_to': reply_to,
             'lang': record.get('langs', ''),
+            'reply': {
+                'root_did': did_root,
+                'parent_did': did_parent
+            }
+
         }
 
-    #toDO
     def _extract_like_data(self, record, repo, path, typeof_action, resolver):
+        #DATA SPLITTING
+        # 'at://did:plc:7exlcsle4mjfhu3wnhcgizz6/app.bsky.feed.post/3m5yn47qncs2n'
+        # Split by '/' to get the main parts
+        try:
+            subject = record.get('subject', '')
+            url=subject.get('uri', '')
+            did, event = self.extract_EventAndDidFromURI(url)
+            DidUsername = self._resolve_author_handle(did, resolver)
+        except Exception as e:
+            print(f"Error processing like: {e}")
+            DidUsername = ''
+            event = ''
+
         return {
-            'typeOfAction': typeof_action
+            'typeOfAction': typeof_action,
+            'subject': {
+                'did_id': DidUsername,
+                'collection': event
+            }
         }
 
-    # toDO
     def _extract_repost_data(self, record, repo, path, typeof_action, resolver):
-        print("REPOST")
-        print(record)
-        return record
+
+        # DATA SPLITTING
+        # 'at://did:plc:7exlcsle4mjfhu3wnhcgizz6/app.bsky.feed.post/3m5yn47qncs2n'
+        # Split by '/' to get the main parts
+        try:
+            subject = record.get('subject', '')
+            url = subject.get('uri', '')
+            did, event = self.extract_EventAndDidFromURI(url)
+            DidUsername = self._resolve_author_handle(did, resolver)
+        except Exception as e:
+            print(f"Error processing repost: {e}")
+            DidUsername = ''
+            event = ''
+
+        return {
+            'typeOfAction': typeof_action,
+            'subject': {
+                'did_id': DidUsername,
+                'collection': event
+            }
+        }
 
     def _extract_block_data(self,record, repo, path, typeof_action, resolver):
 
-        subject = self._resolve_author_handle(record.get('subject'), resolver)
+        try:
+            DidUsername = self._resolve_author_handle(record.get('subject'), resolver)
+        except Exception as e:
+            print(f"Error processing block: {e}")
+            DidUsername = ''
 
         return {
             'typeOfAction': typeof_action,
-            'subject_id': subject
+            'subject': {
+                'subject_id': DidUsername
+            }
         }
 
     def _extract_follow_data(self,record, repo, path, typeof_action, resolver):
-
-        subject = self._resolve_author_handle(record.get('subject'), resolver)
+        try:
+            DidUsername = self._resolve_author_handle(record.get('subject'), resolver)
+        except Exception as e:
+            print(f"Error processing follow: {e}")
+            DidUsername = ''
 
         return {
             'typeOfAction': typeof_action,
-            'subject_id': subject
+            'subject': {
+                'subject_id': DidUsername
+            }
         }
 
-    # toDO
-    def _extract_origin_data(self,record, repo, path, typeof_action, resolver):
-        print("ORIGIN")
-        print(record)
-        return record
-
-    # toDO
     def _extract_actor_data(self,record, repo, path, typeof_action, resolver):
-        print("ACTOR")
-        print(record)
-        return record
 
-    # toDO
-    def _extract_declaration_data(self,record, repo, path, typeof_action, resolver):
-        print("DECLARATION")
-        print(record)
-        return record
+        try:
+            embed = record.get('embed','')
+            embed_type = embed.get('$type','')
+            external= embed.get('external','')
+            uri = external.get('uri','')
+            title = external.get('title','')
+            description = external.get('description','')
+            status = record.get('status','')
+            duration = record.get('durationMinutes','')
+        except Exception as e:
+            print(f"Error processing actor: {e}")
+            embed_type = ''
+            uri = ''
+            title = ''
+            description = ''
+            status = ''
+            duration = ''
 
-    # toDO
+        return {
+            'typeOfAction': typeof_action,
+            'embedType': embed_type,
+            'uri': uri,
+            'title': title,
+            'description': description,
+            'status': status,
+            'duration': duration
+        }
+
     def _extract_profile_data(self,record, repo, path, typeof_action, resolver):
-        print("PROFILE")
-        print(record)
-        return record
+        return {
+            'typeOfAction': typeof_action,
+            'description': record.get('description',''),
+            'displayName': record.get('displayName','')
+        }
 
-    # toDO
-    def _extract_generator_data(self,record, repo, path, typeof_action, resolver):
-        print("GENERATOR")
-        print(record)
-        return record
-
-    # toDO
     def _extract_listitem_data(self,record, repo, path, typeof_action, resolver):
-        print("LISTITEM")
-        print(record)
-        return record
 
-    # toDO
+        try:
+            list = record.get('list', '')
+            list_did, list_event = self.extract_EventAndDidFromURI(list)
+            list_UsernameDid = self._resolve_author_handle(list_did, resolver)
+            subject_id = self._resolve_author_handle(list_did, resolver)
+        except Exception as e:
+            print(f"Error processing listitem: {e}")
+            list_UsernameDid = ''
+            subject_id = ''
+            list_event = ''
+
+        return {
+            'typeOfAction': typeof_action,
+            'subject_id': subject_id,
+            'list': {
+                'did_id': list_UsernameDid,
+                'collection': list_event
+            }
+        }
+
     def _extract_postgate_data(self,record, repo, path, typeof_action, resolver):
-        print("POSTGATE")
-        print(record)
-        return record
 
-    # toDO
+        try:
+            post = record.get('post', '')
+            post_did, post_event = self.extract_EventAndDidFromURI(post)
+            post_Username = self._resolve_author_handle(post_did, resolver)
+            embeddingRules = record.get('embeddingRules', [])
+            detachedEmbeddingUris = record.get('detachedEmbeddingUris', [])
+        except Exception as e:
+            print(f"Error processing postgate: {e}")
+            post_Username = ''
+            embeddingRules = ''
+            detachedEmbeddingUris = ''
+            post_event = ''
+
+        return {
+            'typeOfAction': typeof_action,
+            'post': {
+                'did_id': post_Username,
+                'collection': post_event
+            },
+            'embeddingRules': embeddingRules,
+            'detachedEmbeddingUris': detachedEmbeddingUris
+        }
+
     def _extract_thread_data(self,record, repo, path, typeof_action, resolver):
-        print("THREAD")
-        print(record)
-        return record
 
-    # toDO
-    def _extract_labeler_data(self,record, repo, path, typeof_action, resolver):
-        print("LABELER")
-        print(record)
-        return record
+        try:
+            post = record.get('post', '')
+            post_did, post_event = self.extract_EventAndDidFromURI(post)
+            post_Username = self._resolve_author_handle(post_did, resolver)
+            allow =record.get('allow', [])
+            allow_type= allow.get('$type','')
+            allow_hiddenReplies = allow.get('hiddenReplies', [])
+        except Exception as e:
+            print(f"Error processing thread: {e}")
+            allow_type = ''
+            allow_hiddenReplies = ''
+            post_event = ''
+            post_Username = ''
 
-    # toDO
-    def _extract_starterpack_data(self,record, repo, path, typeof_action, resolver):
-        print("STARTER")
-        print(record)
-        return record
+        return {
+            'typeOfAction': typeof_action,
+            'post': {
+                'did_id': post_Username,
+                'collection': post_event
+            },
+            'allow': {
+                'type': allow_type,
+                'hiddenReplies': allow_hiddenReplies
+            }
+        }
 
-    # toDO
     def _extract_listblock_data(self,record, repo, path, typeof_action, resolver):
-        print("LISTBLOCK")
-        print(record)
-        return record
 
-    # toDO
+        try:
+            subject = record.get('subject', '')
+            url = subject.get('uri', '')
+            did, event = self.extract_EventAndDidFromURI(url)
+        except Exception as e:
+            print(f"Error processing listblock: {e}")
+            did = ''
+            event = ''
+
+        return {
+            'typeOfAction': typeof_action,
+            'subject': {
+                'did_id': did,
+                'collection': event
+            }
+        }
+
     def _extract_list_data(self,record, repo, path, typeof_action, resolver):
-        print("LIST")
-        print(record)
-        return record
+
+        return {
+            'typeOfAction': typeof_action,
+            'purpose': record.get('purpose',''),
+            'name': record.get('name',''),
+            'description': record.get('description','')
+        }
 
 
     def _check_for_images(self,record):
@@ -407,13 +546,29 @@ class ActionScraper:
             json.dump(post_data, f)
             f.write('\n')
 
+    def extract_EventAndDidFromURI(self, url):
+        """Extract event and did from the URI"""
+        parts = url.split('/')
+        # parts: ['at:', '', 'did:plc:7exlcsle4mjfhu3wnhcgizz6', 'app.bsky.feed.post', '3m5yn47qncs2n']
+
+        did_part = parts[2]  # 'did:plc:7exlcsle4mjfhu3wnhcgizz6'
+        event = parts[3]  # 'app.bsky.feed.post'
+
+        # Extract just the DID portion (remove 'did:plc:')
+        did = did_part.split(':')[-1]  # '7exlcsle4mjfhu3wnhcgizz6'
+
+        return did, event
+
+
 def main():
     print("Starting Firehose Scraper")
 
     config = Config()
     action_filename = config.get("actions.filename")
     action_save = config.get("actions.save")
-    output_filename = config.get("firehose.output_file")
+
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    output_filename = f"{current_date}.jsonl"
     verbose = config.get("firehose.verbose")
     scraping_duration = config.get("scraping.time_limit")
     scraping_limit = config.get("scraping.action_limit")

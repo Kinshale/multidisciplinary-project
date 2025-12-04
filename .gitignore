@@ -1,3 +1,4 @@
 # Init commit
 .git 
 data/
+venv/

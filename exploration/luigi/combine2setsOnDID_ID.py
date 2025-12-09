@@ -23,4 +23,4 @@ def delete_useless_events(file_name,file_name2,output_file_name):
     duckdb.query(query)
 
 if __name__ == "__main__":
-    delete_useless_events(file_name='followsFilteredFinal.parquet',file_name2='likesFinal.parquet',output_file_name='UNIONbothDID.parquet')
+    delete_useless_events(file_name='follows.parquet',file_name2='likesFinal2.parquet',output_file_name='UNIONbothDID.parquet')

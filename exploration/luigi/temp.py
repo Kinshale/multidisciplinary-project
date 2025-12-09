@@ -36,20 +36,14 @@ def filter_and_save_direct(
     # This avoids creating intermediate dataframes or temp tables
 
     query = f"""
-    COPY (
-        SELECT *
+   
+        SELECT DISTINCT subject_collection
         FROM read_parquet('{input_file}')
-        WHERE did_id IN (
-            SELECT DISTINCT subject_did_id
-            FROM read_parquet('{input_file}')
-            GROUP BY subject_did_id
-            HAVING COUNT(subject_did_id) > {min_follows}
-            )
-    ) TO '{output_file}' (FORMAT 'parquet')
+        
     """
 
     # Execute the query - this writes directly to disk
-    conn.execute(query)
+    result=conn.execute(query).fetchdf()
 
     elapsed_time = time.time() - start_time
 
@@ -57,7 +51,8 @@ def filter_and_save_direct(
     print(f"Total processing time: {elapsed_time:.2f} seconds")
     print(f"Output file: {output_file}")
     conn.close()
-
+    print(result)
+    print(result["subject_collection"].dtypes)
     return output_file
 
 
@@ -65,7 +60,7 @@ def main():
     """Example usage"""
 
     # Input file path
-    input_file = "followsFilteredFinal5.parquet"  # Update this path
+    input_file = "likesFinal.parquet"  # Update this path
 
     # Check if file exists
     if not os.path.exists(input_file):

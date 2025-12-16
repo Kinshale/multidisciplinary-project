@@ -1,90 +1,182 @@
-LIKES_QUERY ="""
+LIKES_AB_QUERY ="""
     SELECT
-        did_id AS did_id,
-        subject.did_id AS subject_id,
-        subject.collection AS collection,
-        created_at AS created_at
-    FROM read_parquet({file_name})
-    WHERE did_id = {user1} and subject.did_id={user2}
-    AND created_at >= TIMESTAMP '{start_datetime}' AND created_at <= TIMESTAMP '{end_datetime}'""" 
+        *,
+        'likeAB' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user1} and subject_did_id={user2}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'""" 
 
-FOLLOWS_QUERY="""
+LIKES_BA_QUERY ="""
     SELECT
-        did_id AS did_id,
-        subject_id AS subject_id,
-        created_at AS created_at
-    FROM read_parquet({file_name})
-    WHERE did_id = {user1} and subject_id={user2}
-    AND created_at >= TIMESTAMP '{start_datetime}' AND created_at <= TIMESTAMP '{end_datetime}'"""
+        *,
+        'likeBA' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user2} and subject_did_id={user1}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'""" 
 
-REPOSTS_QUERY ="""
+FOLLOWS_AB_QUERY="""
     SELECT
-        did_id AS did_id,
-        subject.did_id AS subject_id,
-        subject.collection AS collection,
-        created_at AS created_at
-    FROM read_parquet({file_name})
-    WHERE did_id = {user1} and subject.did_id={user2}
-    AND created_at >= TIMESTAMP '{start_datetime}' AND created_at <= TIMESTAMP '{end_datetime}'""" 
+        *,
+        'followAB' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user1} and subject_did_id={user2}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'"""
 
-LISTBLOCK_QUERY ="""
+FOLLOWS_BA_QUERY="""
     SELECT
-        did_id AS did_id,
-        subject.did_id AS subject_id,
-        subject.collection AS collection,
-        created_at AS created_at
-    FROM read_parquet({file_name})
-    WHERE did_id = {user1} and subject.did_id={user2}
-    AND created_at >= TIMESTAMP '{start_datetime}' AND created_at <= TIMESTAMP '{end_datetime}'""" 
+        *,
+        'followBA' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user2} and subject_did_id={user1}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'"""
 
-BLOCKS_QUERY="""
+REPOSTS_AB_QUERY ="""
     SELECT
-        did_id AS did_id,
-        subject_id AS subject_id,
-        created_at AS created_at
-    FROM read_parquet({file_name})
-    WHERE did_id = {user1} and subject_id={user2}
-    AND created_at >= TIMESTAMP '{start_datetime}' AND created_at <= TIMESTAMP '{end_datetime}'"""
+        *,
+        'repostAB' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user1} and subject_did_id={user2}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'""" 
 
-LIST_ITEMS_QUERY="""
+REPOSTS_BA_QUERY ="""
     SELECT
-        did_id AS did_id,
-        subject_id AS subject_id,
-        created_at AS created_at,
-        list.did_id AS list_creator,
-        list.collection collection
-    FROM read_parquet({file_name})
-    WHERE did_id = {user1} and subject_id={user2}
-    AND created_at >= TIMESTAMP '{start_datetime}' AND created_at <= TIMESTAMP '{end_datetime}'"""
+        *,
+        'repostBA' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user2} and subject_did_id={user1}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'""" 
 
-LIST_QUERY="""
+LISTBLOCK_AB_QUERY ="""
     SELECT
-        did_id AS did_id,
-        created_at AS created_at,
-        purpose AS purpose,
-        labels AS labels,
-        name AS name
-    FROM read_parquet({file_name})
+        *,
+        'list_blockAB' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user1} and subject_did_id={user2}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'""" 
+
+LISTBLOCK_BA_QUERY ="""
+    SELECT
+        *,
+        'list_blockBA' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user2} and subject_did_id={user1}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'""" 
+
+
+BLOCKS_AB_QUERY="""
+    SELECT
+        *,
+        'blockAB' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user1} and subject_did_id={user2}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'"""
+
+BLOCKS_BA_QUERY="""
+    SELECT
+        *,
+        'blockBA' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user2} and subject_did_id={user1}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'"""
+
+
+LIST_A_QUERY="""
+    SELECT
+        *,
+        'listA' as event
+    FROM read_parquet('{file_name}')
     WHERE did_id = {user1}
-    AND created_at >= TIMESTAMP '{start_datetime}' AND created_at <= TIMESTAMP '{end_datetime}'"""
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'"""
 
-PROFILES_QUERY="""
+
+LIST_B_QUERY="""
     SELECT
-        did_id AS did_id,
-        created_at AS created_at,
-        labels AS labels,
-    FROM read_parquet({file_name})
+        *,
+        'listB' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user2}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'"""
+
+
+PROFILES_A_QUERY="""
+    SELECT
+        *,
+        'profileA' as event
+    FROM read_parquet('{file_name}')
     WHERE did_id = {user1}
-    AND created_at >= TIMESTAMP '{start_datetime}' AND created_at <= TIMESTAMP '{end_datetime}'"""
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'"""
 
-POSTS_QUERY="""
+PROFILES_B_QUERY="""
     SELECT
-        did_id AS did_id,
-        created_at AS created_at,
-        labels AS labels,
-        languages AS languages,
-        reply.root.did_id AS root_id,
-        reply.parent.did_id AS parent_id
-    FROM read_parquet({file_name})
-    WHERE did_id = {user1} and (reply.root.did_id={user2} OR reply.parent.did_id={user2})
-    AND created_at >= TIMESTAMP '{start_datetime}' AND created_at <= TIMESTAMP '{end_datetime}'"""
+        *,
+        'profileB' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user2}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'"""
+
+
+POSTS_AB_ROOT_QUERY="""
+    SELECT
+        *,
+        'postABroot' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user1} and reply_root_did_id={user2}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'"""
+
+POSTS_AB_PARENT_QUERY="""
+    SELECT
+        *,
+        'postABparent' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user1} and reply_parent_did_id={user2}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'"""
+
+
+POSTS_BA_ROOT_QUERY="""
+    SELECT
+        *,
+        'postBAroot' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user2} and reply_root_did_id={user1}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'"""
+
+POSTS_BA_PARENT_QUERY="""
+    SELECT
+        *,
+        'postBAparent' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user2} and reply_parent_did_id={user1}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'"""
+
+
+LIST_ITEMS_AB_QUERY="""
+    SELECT
+        *,
+        'list_itemAB' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user1} and subject_did_id={user2}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'"""
+
+LIST_ITEMS_AB_CREATOR_QUERY="""
+    SELECT
+        *,
+        'list_itemABcreator' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user1} and list_did_id={user2}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'"""
+
+LIST_ITEMS_BA_QUERY="""
+    SELECT
+        *,
+        'list_itemBA' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user2} and subject_did_id={user1}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'"""
+
+LIST_ITEMS_BA_CREATOR_QUERY="""
+    SELECT
+        *,
+        'list_itemBAcreator' as event
+    FROM read_parquet('{file_name}')
+    WHERE did_id = {user2} and list_did_id={user1}
+    AND created_date >= '{start_datetime}' AND created_date <= '{end_datetime}'"""

@@ -1,9 +1,14 @@
 import pyarrow.parquet as pq
 import random
 import duckdb
-from queries import LIKES_QUERY, FOLLOWS_QUERY, REPOSTS_QUERY, LISTBLOCK_QUERY, BLOCKS_QUERY, LIST_ITEMS_QUERY, LIST_QUERY, PROFILES_QUERY, POSTS_QUERY
-from datetime import datetime
-import time
+from queries import (LIKES_AB_QUERY, LIST_A_QUERY,LIST_B_QUERY,LIKES_BA_QUERY,BLOCKS_AB_QUERY,BLOCKS_BA_QUERY,
+                     FOLLOWS_AB_QUERY,FOLLOWS_BA_QUERY,PROFILES_A_QUERY,PROFILES_B_QUERY,REPOSTS_AB_QUERY,
+                     REPOSTS_BA_QUERY,LISTBLOCK_AB_QUERY,LISTBLOCK_BA_QUERY,LIST_ITEMS_AB_QUERY,LIST_ITEMS_BA_QUERY,
+                     POSTS_AB_ROOT_QUERY,POSTS_BA_ROOT_QUERY,POSTS_AB_PARENT_QUERY,POSTS_BA_PARENT_QUERY,
+                     LIST_ITEMS_AB_CREATOR_QUERY,LIST_ITEMS_BA_CREATOR_QUERY)
+
+from datetime import date, timedelta
+import pickle
 
 
 def choose_random_users(parquet_file):
@@ -12,7 +17,7 @@ def choose_random_users(parquet_file):
 
     row = table.slice(random.randint(0, len(table)-1), 1).to_pylist()[0]
 
-    return row["did_id"], row["subject"]["did_id"]
+    return row["did_id"], row["subject_did_id"], row["created_date"]
 
 
 
@@ -32,32 +37,74 @@ def get_events(file_name, query, user1, user2, start_datetime, end_datetime):
 
 
 
+def append_to_pickle(file_path, new_data):
+    
+    existing_data=[]
+    with open(file_path, 'rb') as f:
+        existing_data = pickle.load(f)
 
-pf = pq.ParquetFile("chunk_0_likes.parquet")
-start = datetime(2024, 9, 3, 0, 0, 0).astimezone()
-end   = datetime(2024, 9, 4, 0, 0, 0).astimezone()
+    existing_data.append(new_data)
+    
+    with open(file_path, 'wb') as f:
+        pickle.dump(existing_data, f)
 
 
 
+pf = pq.ParquetFile("datasets/likes.parquet")
+start_date = date(2024, 9, 3)
+end_date   = date(2025, 9, 4)
 
-start = time.perf_counter()
 
-for i in range(1):
+
+# for i in range(1):
+while True:
     event_list=[]
 
-    user1, user2= choose_random_users(pf)
+    user1, user2, start_date= choose_random_users(pf)
+    end_date=start_date + timedelta(days=7)
 
-    event_list+= get_events("chunk_0_likes.parquet", LIKES_QUERY, user1, user2, start, end)
-    event_list+= get_events("chunk_0_follow.parquet", FOLLOWS_QUERY, user1, user2, start, end)
-    event_list+= get_events("chunk_0_posts.parquet", POSTS_QUERY, user1, user2, start, end)
-    event_list+= get_events("chunk_0_reposts.parquet", REPOSTS_QUERY, user1, user2, start, end)
-    event_list+= get_events("list_blocks.parquet", LISTBLOCK_QUERY, user1, user2, start, end)
-    event_list+= get_events("list_items.parquet", LIST_ITEMS_QUERY, user1, user2, start, end)
-    event_list+= get_events("lists.parquet", LIST_QUERY, user1, user2, start, end)
-    event_list+= get_events("profiles.parquet", PROFILES_QUERY, user1, user2, start, end)
+    event_list+= get_events("datasets/likes.parquet", LIKES_AB_QUERY, user1, user2, start_date, end_date)
+    event_list+= get_events("datasets/likes.parquet", LIKES_BA_QUERY, user1, user2, start_date, end_date)
 
-end = time.perf_counter()
+    event_list+= get_events("datasets/follows.parquet", FOLLOWS_AB_QUERY, user1, user2, start_date, end_date)
+    event_list+= get_events("datasets/follows.parquet", FOLLOWS_BA_QUERY, user1, user2, start_date, end_date)
+
+    event_list+= get_events("datasets/reposts.parquet", REPOSTS_AB_QUERY, user1, user2, start_date, end_date)
+    event_list+= get_events("datasets/reposts.parquet", REPOSTS_BA_QUERY, user1, user2, start_date, end_date)
+
+    event_list+= get_events("datasets/list_blocks.parquet", LISTBLOCK_AB_QUERY, user1, user2, start_date, end_date)
+    event_list+= get_events("datasets/list_blocks.parquet", LISTBLOCK_BA_QUERY, user1, user2, start_date, end_date)
+
+    event_list+=  get_events("datasets/lists.parquet", LIST_A_QUERY, user1, user2, start_date, end_date)
+    event_list+=  get_events("datasets/lists.parquet", LIST_B_QUERY, user1, user2, start_date, end_date)
+
+    event_list+=  get_events("datasets/profiles.parquet", PROFILES_A_QUERY, user1, user2, start_date, end_date)
+    event_list+=  get_events("datasets/profiles.parquet", PROFILES_B_QUERY, user1, user2, start_date, end_date)
+
+    event_list+= get_events("datasets/posts.parquet", POSTS_AB_ROOT_QUERY, user1, user2, start_date, end_date)
+    event_list+= get_events("datasets/posts.parquet", POSTS_BA_ROOT_QUERY, user1, user2, start_date, end_date)
+    event_list+= get_events("datasets/posts.parquet", POSTS_AB_PARENT_QUERY, user1, user2, start_date, end_date)
+    event_list+= get_events("datasets/posts.parquet", POSTS_BA_PARENT_QUERY, user1, user2, start_date, end_date)
+
+    event_list+=  get_events("datasets/list_items.parquet", LIST_ITEMS_AB_QUERY, user1, user2, start_date, end_date)
+    event_list+=  get_events("datasets/list_items.parquet", LIST_ITEMS_BA_QUERY, user1, user2, start_date, end_date)
+    event_list+=  get_events("datasets/list_items.parquet", LIST_ITEMS_AB_CREATOR_QUERY, user1, user2, start_date, end_date)
+    event_list+=  get_events("datasets/list_items.parquet", LIST_ITEMS_BA_CREATOR_QUERY, user1, user2, start_date, end_date)
 
 
-print(event_list)
-print(f"Calculation took {end - start:.6f} seconds")
+    block_list=[]
+    
+    start_date2=start_date+ timedelta(days=8)
+    end_date2=start_date + timedelta(days=7)
+
+    block_list+=  get_events("datasets/blocks.parquet", BLOCKS_AB_QUERY, user1, user2, start_date2, end_date2)
+    block_list+=  get_events("datasets/blocks.parquet", BLOCKS_BA_QUERY, user1, user2, start_date2, end_date2)
+
+    append_to_pickle("datasets/user2user_events.pkl",{"events":event_list, "blocks":block_list, "start_date": start_date})
+
+
+    
+    
+
+
+ 

@@ -60,8 +60,7 @@ def append_to_pickle(file_path, new_data):
 
 
 pf = pq.ParquetFile("datasets/blocks.parquet")
-start_date = date(2024, 9, 3)
-end_date   = date(2025, 9, 4)
+
 
 
 c=0

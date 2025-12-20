@@ -12,13 +12,22 @@ import pickle
 
 
 
+# chooses a random block interaction from the block.parquet file, then decides a random offset of days to set the initial date
+# from where to start filtering data. this way the blocks events retrieved in the second week can happen in any day, just like 
+# when using choose_random_users with the likes dataset. 
+
+# POSSIBLE PROBLEM: this way if we use the likes dataset, we are guaranteed at least one event while in the other case we don't,
+# furthermore this event is gonna be on the first day, while when using the blocks dataset there might be no events on the first day.
+
 def choose_random_users(parquet_file):
     
     table = parquet_file.read_row_group(random.randint(0, parquet_file.num_row_groups-1))
 
     row = table.slice(random.randint(0, len(table)-1), 1).to_pylist()[0]
     
-    return row["did_id"], row["subject_did_id"], row["created_date"]
+    day=row["created_date"] - timedelta(random.randint(7,13))
+
+    return row["did_id"], row["subject_did_id"], day
 
 
 
@@ -107,3 +116,7 @@ while True:
 
 
     
+    
+
+
+ 

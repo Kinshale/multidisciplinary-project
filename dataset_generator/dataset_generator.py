@@ -50,9 +50,8 @@ def append_to_pickle(file_path, new_data):
 
 
 
-pf = pq.ParquetFile("datasets/blocks.parquet")
-start_date = date(2024, 9, 3)
-end_date   = date(2025, 9, 4)
+pf = pq.ParquetFile("datasets/likes.parquet")
+
 
 
 c=0
@@ -100,7 +99,7 @@ while True:
     block_list+=  get_events("datasets/blocks.parquet", BLOCKS_AB_QUERY, user1, user2, start_date2, end_date2)
     block_list+=  get_events("datasets/blocks.parquet", BLOCKS_BA_QUERY, user1, user2, start_date2, end_date2)
 
-    append_to_pickle("datasets/user2user_events2.pkl",{"events":event_list, "blocks":block_list, "start_date": start_date})
+    append_to_pickle("datasets/user2user_events.pkl",{"events":event_list, "blocks":block_list, "start_date": start_date})
 
     c+=1
     print(c)
